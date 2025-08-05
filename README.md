@@ -20,6 +20,7 @@ This project implements a large assortment of random distributions.
 - Normal
 - Pareto
 - Poisson
+- RandInt
 - Rayleigh
 - StudentsT
 - Triangle
@@ -40,3 +41,7 @@ distribution.generate();
 If necessary the `new` method requires additional arguments.
 For examples a `Normal` distribution requires a `mean` and a `variance`.
  
+# TODOs
+
+- [ ] Invert `Ok` and `Err` case to improve path prediction.
+- [ ] Implement `Error` struct to return `Result<Distr, Error>` instead of `Result<Distr, String>`.
