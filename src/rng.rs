@@ -31,14 +31,14 @@ pub struct Rng {
 impl Rng {
     /// The constant multiplier used in the LCG for generating random numbers.
     /// It is used in the `next` method.
-    const A: u64 = 6364136223846793005;
+    const A: u64 = 6364136223846793005_u64;
 
     /// The constant added to the result in the LCG.
     /// It is used in the `next` method.
-    const C: u64 = 1;
+    const C: u64 = 1_u64;
 
     /// The inverse of `u64::MAX`, used to scale the output to a value between 0 and 1.
-    const INV_U64_MAX: f64 = 1f64 / u64::MAX as f64;
+    const INV_U64_MAX: f64 = 1_f64 / u64::MAX as f64;
 }
 
 impl Rng {
@@ -198,11 +198,11 @@ impl Rng {
 
         // Generate a new pair of values
         loop {
-            let u: f64 = 2f64 * self.generate() - 1f64;
-            let v: f64 = 2f64 * self.generate() - 1f64;
-            let s: f64 = u.powi(2) + v.powi(2);
-            if s < 1f64 {
-                let factor: f64 = (-2f64 * simple_ln(s) / s).sqrt();
+            let u: f64 = 2_f64 * self.generate() - 1_f64;
+            let v: f64 = 2_f64 * self.generate() - 1_f64;
+            let s: f64 = u.powi(2_i32) + v.powi(2_i32);
+            if s < 1_f64 {
+                let factor: f64 = (-2_f64 * simple_ln(s) / s).sqrt();
                 self.cached_normal = Some(v * factor);
                 return u * factor;
             }
@@ -210,6 +210,20 @@ impl Rng {
     }
 }
 
+/// A trait that allows simple implementation of the same methods for multiple distributions.
+///
+/// This trait requieres the implementation of the following functions:
+///
+/// * `seed(&self) -> u64`
+/// * `restart(&mut self)`
+/// * `reset(&mut self)`
+/// * `set_seed(&mut self, seed: u64)`
+/// * `generate_multiple(&mut self, number: usize) -> Vec<f64>`
+///
+/// # Notes
+///
+/// This trait can automatically be implemented with the `auto_rng_trait` macro.
+/// For this to work the distribution needs to have a `rng` attribute of type `Rng` and a `generate` method.
 pub trait RngTrait {
     fn seed(&self) -> u64;
     fn restart(&mut self);
@@ -218,6 +232,9 @@ pub trait RngTrait {
     fn generate_multiple(&mut self, number: usize) -> Vec<f64>;
 }
 
+/// Automatically implements the `RngTrait` trait.
+///
+/// For this to work the distribution needs to have a `rng` attribute of type `Rng` and a `generate` method.
 #[macro_export]
 macro_rules! auto_rng_trait {
     ($t:ty) => {
@@ -276,7 +293,7 @@ macro_rules! auto_rng_trait {
             fn generate_multiple(&mut self, number: usize) -> Vec<f64> {
                 let mut randoms: Vec<f64> = Vec::with_capacity(number);
 
-                for _ in 0..number {
+                for _ in 0_usize..number {
                     randoms.push(self.generate() as f64);
                 }
                 randoms

@@ -3,6 +3,7 @@
 use crate::auto_rng_trait;
 use crate::auxiliary::simple_ln;
 use crate::rng::{Rng, RngTrait};
+use crate::rng_error::RngError;
 
 /// A struct for generating random variables from a Weibull distribution.
 ///
@@ -41,20 +42,16 @@ impl Weibull {
     /// # Returns
     ///
     /// * `Ok(Weibull)` - Returns an instance of `Weibull` if `shape` and `scale` are positive.
-    /// * `Err(String)` - Returns an error message if `shape` or `scale` is less than or equal to 0.
-    pub fn new(shape: f64, scale: f64) -> Result<Weibull, String> {
-        if shape <= 0f64 {
-            Err(format!("Shape must be a positive number. {} is not.", shape))
-        } else if scale <= 0f64 {
-            Err(format!("Scale must be a positive number. {} is not.", scale))
-        } else {
-            Ok(Weibull {
-                rng: Rng::new(),
-                shape,
-                scale,
-            })
-        }
+    /// * `Err(RngError)` - Returns a `PositiveError` if `shape` or `scale` is less than or equal to 0.
+    pub fn new(shape: f64, scale: f64) -> Result<Weibull, RngError> {
+        RngError::check_positive(shape)?;
+        RngError::check_positive(scale)?;
 
+        Ok(Weibull {
+            rng: Rng::new(),
+            shape,
+            scale,
+        })
     }
 
     /// Generates a random value from the Weibull distribution.
@@ -73,6 +70,8 @@ impl Weibull {
     ///
     /// This uses the `simple_ln` function for speed up.
     pub fn generate(&mut self) -> f64 {
-        self.scale * (- simple_ln(self.rng.generate())).powf(1f64 / self.shape)
+        let uni: f64 = self.rng.generate();
+
+        self.scale * (-simple_ln(uni)).powf(1_f64 / self.shape)
     }
 }

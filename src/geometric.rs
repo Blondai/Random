@@ -3,6 +3,7 @@
 use crate::auto_rng_trait;
 use crate::auxiliary::simple_ln;
 use crate::rng::{Rng, RngTrait};
+use crate::rng_error::RngError;
 
 /// A struct for generating random variables from an Geometric distribution.
 ///
@@ -37,16 +38,14 @@ impl Geometric {
     /// # Returns
     ///
     /// * `Ok(Geometric)` - Returns an instance of `Geometric` if the `probability` is a probability.
-    /// * `Err(String)` - Returns an error message if the `probability` is less than 0 or greater than one.
-    pub fn new(probability: f64) -> Result<Geometric, String> {
-        if probability <= 0f64 || probability >= 1f64 {
-            Err(format!("Probability must be a probability. {} is not.", probability))
-        } else {
-            Ok(Geometric {
-                rng: Rng::new(),
-                probability,
-            })
-        }
+    /// * `Err(RngError)` - Returns an `IntervalError` if the `probability` is less than 0 or greater than one.
+    pub fn new(probability: f64) -> Result<Geometric, RngError> {
+        RngError::check_interval(probability, 0_f64, 1_f64)?;
+
+        Ok(Geometric {
+            rng: Rng::new(),
+            probability,
+        })
     }
 
     /// Generates a random value from the Geometric distribution.
@@ -65,6 +64,6 @@ impl Geometric {
     ///
     /// This uses the `simple_ln` function for speed up.
     pub fn generate(&mut self) -> i32 {
-        (simple_ln(self.rng.generate()) / simple_ln(1f64 - self.probability)).ceil() as i32
+        (simple_ln(self.rng.generate()) / simple_ln(1_f64 - self.probability)).ceil() as i32
     }
 }

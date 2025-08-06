@@ -2,6 +2,7 @@
 
 use crate::auto_rng_trait;
 use crate::rng::{Rng, RngTrait};
+use crate::rng_error::RngError;
 
 pub struct RandInt {
     /// The uniformly distributed random number generator.
@@ -33,24 +34,19 @@ impl RandInt {
     /// # Returns
     ///
     /// * `Ok(RandInt)` - Returns an instance of `RandInt` if the `a` is smaller than `b`.
-    /// * `Err(String)` - Returns an error message if the values are wrongly ordered.
-    pub fn new(a: i32, b: i32) -> Result<Self, String> {
-        if a < b {
-            // Conversions only needed once
-            let range: f64 = b as f64 - a as f64 + 1_f64;
+    /// * `Err(RngError)` - Returns a `OrderError` if the values are wrongly ordered.
+    pub fn new(a: i32, b: i32) -> Result<Self, RngError> {
+        RngError::check_order(a as f64, b as f64)?;
 
-            Ok(RandInt {
-                rng: Rng::new(),
-                a,
-                b,
-                range,
-            })
-        } else {
-            Err(format!(
-                "The value of `a` must be strictly smaller than the value of `b`. {} is not smaller than {}",
-                a, b
-            ))
-        }
+        // Conversions only needed once
+        let range: f64 = b as f64 - a as f64 + 1_f64;
+
+        Ok(RandInt {
+            rng: Rng::new(),
+            a,
+            b,
+            range,
+        })
     }
 
     /// Generates a random integer between `a` and `b`.

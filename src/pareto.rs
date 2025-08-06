@@ -2,6 +2,7 @@
 
 use crate::auto_rng_trait;
 use crate::rng::{Rng, RngTrait};
+use crate::rng_error::RngError;
 
 /// A struct for generating random variables from a Pareto distribution.
 ///
@@ -28,7 +29,7 @@ pub struct Pareto {
 
     /// The inverse of the shape.
     /// This is used to safe on floating point division.
-    inverse_shape: f64
+    inverse_shape: f64,
 }
 
 auto_rng_trait!(Pareto);
@@ -48,26 +49,17 @@ impl Pareto {
     /// # Returns
     ///
     /// * `Ok(Pareto)` - Returns an instance of `Pareto` if the scale and shape are valid.
-    /// * `Err(String)` - Returns an error message if the scale or shape are less than or equal to 0.
-    pub fn new(scale: f64, shape: f64) -> Result<Pareto, String> {
-        if scale <= 0f64 {
-            Err(format!(
-                "Scale must be a positive number. {} is not.",
-                scale
-            ))
-        } else if shape <= 0f64 {
-            Err(format!(
-                "Shape must be a positive number. {} is not.",
-                shape
-            ))
-        } else {
-            Ok(Pareto {
-                rng: Rng::new(),
-                scale,
-                shape,
-                inverse_shape: 1f64 / shape,
-            })
-        }
+    /// * `Err(RngError)` - Returns a `PositiveError` if the scale or shape are less than or equal to 0.
+    pub fn new(scale: f64, shape: f64) -> Result<Pareto, RngError> {
+        RngError::check_positive(scale)?;
+        RngError::check_positive(shape)?;
+
+        Ok(Pareto {
+            rng: Rng::new(),
+            scale,
+            shape,
+            inverse_shape: 1_f64 / shape,
+        })
     }
 
     /// Generates a random value from the Pareto distribution.
@@ -80,6 +72,8 @@ impl Pareto {
     ///
     /// A `f64` value generated from the Pareto distribution.
     pub fn generate(&mut self) -> f64 {
-        self.scale / self.rng.generate().powf(1f64 / self.shape)
+        let uni: f64 = self.rng.generate();
+
+        self.scale / uni.powf(self.inverse_shape)
     }
 }

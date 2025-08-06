@@ -2,6 +2,7 @@
 
 use crate::auto_rng_trait;
 use crate::rng::{Rng, RngTrait};
+use crate::rng_error::RngError;
 
 /// A struct for generating random variables from a StudentsT distribution.
 ///
@@ -35,19 +36,11 @@ impl StudentsT {
     /// # Returns
     ///
     /// * `Ok(StudentsT)` - Returns an instance of `StudentsT` if the degree of freedom is positive.
-    /// * `Err(String)` - Returns an error message if the degree of freedom is less than or equal to 0.
-    pub fn new(k: i32) -> Result<StudentsT, String> {
-        if k <= 0i32 {
-            Err(format!(
-                "Degrees of freedom must be a positive integer. {} is not.",
-                k
-            ))
-        } else {
-            Ok(StudentsT {
-                rng: Rng::new(),
-                k,
-            })
-        }
+    /// * `Err(RngError)` - Returns a `PositiveError` if the degree of freedom is less than or equal to 0.
+    pub fn new(k: i32) -> Result<StudentsT, RngError> {
+        RngError::check_positive(k as f64)?;
+
+        Ok(StudentsT { rng: Rng::new(), k })
     }
 
     /// Generates a random value from the StudentsT distribution.
@@ -62,11 +55,12 @@ impl StudentsT {
     ///
     /// A `f64` value generated from the StudentsT distribution.
     pub fn generate(&mut self) -> f64 {
-        let mut sum : f64 = 0f64;
+        let mut sum: f64 = 0_f64;
 
-        for _ in 0..self.k {
-            sum += self.rng.gen_standard_normal().powi(2i32);
+        for _ in 0_i32..self.k {
+            sum += self.rng.gen_standard_normal().powi(2_i32);
         }
+
         self.rng.gen_standard_normal() / (sum / self.k as f64).sqrt()
     }
 }

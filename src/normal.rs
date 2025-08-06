@@ -2,6 +2,7 @@
 
 use crate::auto_rng_trait;
 use crate::rng::{Rng, RngTrait};
+use crate::rng_error::RngError;
 
 /// A struct for generating random variables from a Normal distribution.
 ///
@@ -45,21 +46,16 @@ impl Normal {
     /// # Returns
     ///
     /// * `Ok(Normal)` - Returns an instance of `Normal` if the variance is valid.
-    /// * `Err(String)` - Returns an error message if the variance is less than or equal to 0.
-    pub fn new(mean: f64, variance: f64) -> Result<Normal, String> {
-        if variance <= 0f64 {
-            Err(format!(
-                "Variance must be a positive number. {} is not.",
-                mean
-            ))
-        } else {
-            Ok(Normal {
-                rng: Rng::new(),
-                mean,
-                variance,
-                std: variance.sqrt(),
-            })
-        }
+    /// * `Err(RngError)` - Returns a `PositiveError` if the variance is less than or equal to 0.
+    pub fn new(mean: f64, variance: f64) -> Result<Normal, RngError> {
+        RngError::check_positive(variance)?;
+
+        Ok(Normal {
+            rng: Rng::new(),
+            mean,
+            variance,
+            std: variance.sqrt(),
+        })
     }
 
     /// Creates a new standard `Normal` instance with a given mean = 0 and variance = 1.
@@ -70,7 +66,7 @@ impl Normal {
     ///
     /// A `Normal` instance representing the standard normal distribution.
     pub fn standard_normal() -> Normal {
-        Normal::new(0f64, 1f64).unwrap()
+        Normal::new(0_f64, 1_f64).unwrap()
     }
 
     /// Generates a random value from the Normal distribution.
@@ -86,6 +82,8 @@ impl Normal {
     ///
     /// A `f64` value generated from the Normal distribution.
     pub fn generate(&mut self) -> f64 {
-        self.std * self.rng.gen_standard_normal() + self.mean
+        let normal: f64 = self.rng.gen_standard_normal();
+
+        self.std * normal + self.mean
     }
 }

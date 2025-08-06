@@ -2,6 +2,7 @@
 
 use crate::auto_rng_trait;
 use crate::rng::{Rng, RngTrait};
+use crate::rng_error::RngError;
 
 /// A struct for generating random variables from a Poisson distribution.
 ///
@@ -38,21 +39,17 @@ impl Poisson {
     /// # Returns
     ///
     /// * `Ok(Poisson)` - Returns an instance of `Poisson` if the rate is positive.
-    /// * `Err(String)` - Returns an error message if the rate is negative.
-    pub fn new(rate: f64) -> Result<Self, String> {
-        if rate <= 0f64 {
-            Err(format!(
-                "The rate must be strictly positive. {} is not.",
-                rate
-            ))
-        } else {
-            let exp: f64 = (-rate).exp();
-            Ok(Poisson {
-                rng: Rng::new(),
-                rate,
-                exp,
-            })
-        }
+    /// * `Err(RngError)` - Returns a `PositiveError` if the rate is negative.
+    pub fn new(rate: f64) -> Result<Self, RngError> {
+        RngError::check_positive(rate)?;
+
+        let exp: f64 = (-rate).exp();
+
+        Ok(Poisson {
+            rng: Rng::new(),
+            rate,
+            exp,
+        })
     }
 
     /// Generates a random value from the Poisson distribution.
@@ -63,16 +60,17 @@ impl Poisson {
     ///
     /// A `f64` value generated from the Poisson distribution.
     pub fn generate(&mut self) -> i32 {
-        let mut k: i32 = 0i32;
-        let mut p: f64 = 1f64;
+        let mut k: i32 = 0_i32;
+        let mut p: f64 = 1_f64;
 
         loop {
-            k += 1i32;
             let uni: f64 = self.rng.generate();
+
+            k += 1_i32;
             p *= uni;
 
             if p <= self.exp {
-                return k - 1i32
+                return k - 1_i32;
             }
         }
     }

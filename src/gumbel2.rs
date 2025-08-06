@@ -65,6 +65,8 @@ impl Gumbel2 {
     ///
     /// This uses the `simple_ln` function for speed up.
     pub fn generate(&mut self) -> f64 {
-        (-simple_ln(self.rng.generate() / self.scale)).powf(-1f64 / self.shape)
+        let uni: f64 = self.rng.generate();
+
+        (-simple_ln(uni / self.scale)).powf(-1_f64 / self.shape)
     }
 }

@@ -30,10 +30,10 @@ This project implements a large assortment of random distributions.
 Almost all of them are implemented using random numbers generated from a uniform distribution between 0 and 1.
 This distribution uses a Linear Congruential Generator to generate those numbers blazingly fast although not cryptographically secure.
 
-The syntax for all the distributions is the same.
+The syntax for all the distributions is somewhat similar.
 
 ```rust
-let mut distribution: T = T::new(); // Add additional arguments
+let mut distribution: T = T::new().unwrap(); // Add additional arguments
 distribution.generate();
 ```
 
@@ -43,5 +43,7 @@ For examples a `Normal` distribution requires a `mean` and a `variance`.
  
 # TODOs
 
-- [ ] Invert `Ok` and `Err` case to improve path prediction.
-- [ ] Implement `Error` struct to return `Result<Distr, Error>` instead of `Result<Distr, String>`.
+- [x] Invert `Ok` and `Err` case to improve branch prediction.
+- [x] Implement `Error` struct to return `Result<Distr, Error>` instead of `Result<Distr, String>`.
+- [ ] Add getter methods.
+- [ ] Add unit tests. I have no clue how to test something that should be random...

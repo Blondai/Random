@@ -2,6 +2,7 @@
 
 use crate::auto_rng_trait;
 use crate::rng::{Rng, RngTrait};
+use crate::rng_error::RngError;
 
 /// A struct for generating random variables from a Binomial distribution.
 ///
@@ -57,29 +58,20 @@ impl Binomial {
     /// # Returns
     ///
     /// * `Ok(Binomial)` - Returns an instance of `Binomial` if the `n` and `p` are valid.
-    /// * `Err(String)` - Returns an error message if `n` is less than or equal to 0 or bigger than 128 or if `p` is not a probability.
-    pub fn new(n: i32, p: f64) -> Result<Binomial, String> {
-        if n <= 0i32 {
-            Err(format!(
-                "Number of trials must be a positive integer. {} is not.",
-                n
-            ))
-        } else if n >= 129 {
-            Err(String::from("Number of trials iss to big for a u128. You can use 128 at most.."))
-        } else if p <= 0f64 || p >= 1f64 {
-            Err(format!(
-                "Probability of success must be between 0 and 1. {} is not.",
-                p
-            ))
-        } else {
-            let cdf: Vec<f64> = Self::get_cdf(n, p);
-            Ok(Binomial {
-                rng: Rng::new(),
-                n,
-                p,
-                cdf,
-            })
-        }
+    /// * `Err(RngError)` - Returns a `PositiveError` or `IntervalError` if `n` is less than or equal to 0
+    /// or bigger than 128 or if `p` is not a probability.
+    pub fn new(n: i32, p: f64) -> Result<Binomial, RngError> {
+        RngError::check_positive(n as f64)?;
+        RngError::check_interval(n as f64, 0_f64, 128_f64)?;
+        RngError::check_interval(p, 0_f64, 1_f64)?;
+
+        let cdf: Vec<f64> = Self::get_cdf(n, p);
+        Ok(Binomial {
+            rng: Rng::new(),
+            n,
+            p,
+            cdf,
+        })
     }
 
     /// Generates a random value from the Binomial distribution.
@@ -91,7 +83,7 @@ impl Binomial {
     /// A `i32` value generated from the Binomial distribution.
     pub fn generate(&mut self) -> i32 {
         let uniform: f64 = self.rng.generate();
-        for k in 0usize..=self.n as usize {
+        for k in 0_usize..=self.n as usize {
             if self.cdf[k] > uniform {
                 return k as i32;
             }
@@ -114,10 +106,10 @@ impl Binomial {
     ///
     /// A vector containing the cumulative probabilities.
     fn get_cdf(n: i32, p: f64) -> Vec<f64> {
-        let mut cdf: Vec<f64> = Vec::with_capacity((n + 1) as usize);
-        let mut sum: f64 = 0f64;
+        let mut cdf: Vec<f64> = Vec::with_capacity((n + 1_i32) as usize);
+        let mut sum: f64 = 0_f64;
 
-        for k in 0..=n {
+        for k in 0_i32..=n {
             let binomial_probability: f64 = Self::binomial_probability(n, k, p);
             sum += binomial_probability;
             cdf.push(sum);

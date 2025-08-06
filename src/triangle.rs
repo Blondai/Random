@@ -2,6 +2,7 @@
 
 use crate::auto_rng_trait;
 use crate::rng::{Rng, RngTrait};
+use crate::rng_error::RngError;
 
 /// A struct for generating random variables from a Triangle distribution.
 ///
@@ -55,27 +56,20 @@ impl Triangle {
     /// # Returns
     ///
     /// * `Ok(Triangle)` - Returns an instance of `Triangle` if the parameters are valid.
-    /// * `Err(String)` - Returns an error message if the parameters are invalid.
-    pub fn new(a: f64, b: f64, c: f64) -> Result<Self, String> {
-        if a > b  {
-            Err(format!("b must be bigger than a. {} is not bigger than {}.",
-                        b, a))
-        } else if c < a {
-            Err(format!("c must be bigger than a. {} is not bigger than {}.",
-                        c, a))
-        } else if c > b {
-            Err(format!("c must be smaller than b. {} is not bigger than {}.",
-                        c, b))
-        } else {
-            let distribution_c: f64 = Self::calculate_distribution_c(a, b, c);
-            Ok(Triangle {
-                rng: Rng::new(),
-                a,
-                b,
-                c,
-                distribution_c,
-            })
-        }
+    /// * `Err(RngError)` - Returns a `OrderError` or `IntervalError` if the parameters are invalid.
+    pub fn new(a: f64, b: f64, c: f64) -> Result<Self, RngError> {
+        RngError::check_order(a, b)?;
+        RngError::check_interval(c, a, b)?;
+
+        let distribution_c: f64 = Self::calculate_distribution_c(a, b, c);
+
+        Ok(Triangle {
+            rng: Rng::new(),
+            a,
+            b,
+            c,
+            distribution_c,
+        })
     }
 
     /// Generates a random value from the Triangle distribution.
@@ -89,7 +83,7 @@ impl Triangle {
         if uni < self.distribution_c {
             self.a + (uni * (self.b - self.a) * (self.c - self.a)).sqrt()
         } else {
-            self.b - ((1f64 - uni) * (self.b - self.a) * (self.b - self.c)).sqrt()
+            self.b - ((1_f64 - uni) * (self.b - self.a) * (self.b - self.c)).sqrt()
         }
     }
 

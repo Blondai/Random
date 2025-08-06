@@ -2,6 +2,7 @@
 
 use crate::auto_rng_trait;
 use crate::rng::{Rng, RngTrait};
+use crate::rng_error::RngError;
 
 /// A struct for generating random variables from a Bernoulli distribution.
 ///
@@ -37,19 +38,14 @@ impl Bernoulli {
     /// # Returns
     ///
     /// * `Ok(Bernoulli)` - Returns an instance of `Bernoulli` if the probability is valid.
-    /// * `Err(String)` - Returns an error message if the probability is outside the range [0, 1].
-    pub fn new(probability: f64) -> Result<Bernoulli, String> {
-        if probability < 0.0 || probability > 1.0 {
-            Err(format!(
-                "The `probability` parameter must be between 0 and 1. {} is not.",
-                probability
-            ))
-        } else {
-            Ok(Bernoulli {
-                rng: Rng::new(),
-                probability,
-            })
-        }
+    /// * `Err(RngError)` - Returns an `IntervalError` if the probability is outside the range [0, 1].
+    pub fn new(probability: f64) -> Result<Bernoulli, RngError> {
+        RngError::check_interval(probability, 0_f64, 1_f64)?;
+
+        Ok(Bernoulli {
+            rng: Rng::new(),
+            probability,
+        })
     }
 
     /// Creates a `Bernoulli` distribution with a probability of 0.5 (representing a fair coin toss).
@@ -61,7 +57,7 @@ impl Bernoulli {
     ///
     /// A `Bernoulli` instance with a 50% chance of generating `1` (heads) and a 50% chance of generating `0` (tails).
     pub fn coin() -> Bernoulli {
-        Bernoulli::new(0.5).unwrap()
+        Bernoulli::new(0.5_f64).unwrap()
     }
 
     /// Generates a random value from the Bernoulli distribution.
@@ -76,9 +72,9 @@ impl Bernoulli {
     /// * `0` - Otherwise.
     pub fn generate(&mut self) -> u32 {
         if self.rng.generate() < self.probability {
-            1
+            1_u32
         } else {
-            0
+            0_u32
         }
     }
 
@@ -94,16 +90,11 @@ impl Bernoulli {
     /// # Returns
     ///
     /// * `Ok(())` - if the probability is valid and the update is successful.
-    /// * `Err(String)` - if the probability is outside the valid range [0.0, 1.0], with an error message.
-    pub fn change_probability(&mut self, probability: f64) -> Result<(), String> {
-        if probability < 0.0 || probability > 1.0 {
-            Err(format!(
-                "The `probability` parameter must be between 0 and 1. {} is not.",
-                probability
-            ))
-        } else {
-            self.probability = probability;
-            Ok(())
-        }
+    /// * `Err(RngError)` - if the probability is outside the valid range [0.0, 1.0], with an error message.
+    pub fn change_probability(&mut self, probability: f64) -> Result<(), RngError> {
+        RngError::check_interval(probability, 0_f64, 1_f64)?;
+
+        self.probability = probability;
+        Ok(())
     }
 }

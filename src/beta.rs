@@ -2,6 +2,7 @@
 
 use crate::auto_rng_trait;
 use crate::rng::{Rng, RngTrait};
+use crate::rng_error::RngError;
 
 /// A struct for generating random variables from a Beta distribution.
 ///
@@ -41,21 +42,16 @@ impl Beta {
     /// # Returns
     ///
     /// * `Ok(Beta)` - Returns an instance of `Beta` if the alpha and beta are valid.
-    /// * `Err(String)` - Returns an error message if the alpha or beta are less than or equal to 0.
-    pub fn new(alpha: i32, beta: i32) -> Result<Self, String> {
-        if alpha <= 0i32 {
-            Err(format!("alpha must be a positive number. {} is not.",
-                        alpha))
-        } else if beta <= 0i32 {
-            Err(format!("beta must be a positive number. {} is not.",
-                        beta))
-        } else {
-            Ok(Beta {
-                rng: Rng::new(),
-                alpha,
-                beta,
-            })
-        }
+    /// * `Err(RngError)` - Returns a `PositiveError` if the alpha or beta are less than or equal to 0.
+    pub fn new(alpha: i32, beta: i32) -> Result<Self, RngError> {
+        RngError::check_positive(alpha as f64)?;
+        RngError::check_positive(beta as f64)?;
+
+        Ok(Beta {
+            rng: Rng::new(),
+            alpha,
+            beta,
+        })
     }
 
     /// Generates a random value from the Beta distribution.
@@ -87,11 +83,11 @@ impl Beta {
     ///
     /// A `f64` value generated from the Gamma distribution.
     fn get_gamma(&mut self, shape: i32) -> f64 {
-        let mut prod: f64 = 1f64;
+        let mut prod: f64 = 1_f64;
 
-        for _ in 0usize..(shape as usize) {
+        for _ in 0_usize..(shape as usize) {
             prod *= self.rng.generate();
         }
-        - prod.ln()
+        -prod.ln()
     }
 }

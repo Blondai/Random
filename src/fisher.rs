@@ -2,6 +2,7 @@
 
 use crate::auto_rng_trait;
 use crate::rng::{Rng, RngTrait};
+use crate::rng_error::RngError;
 
 /// A struct for generating random variables from a Fisher distribution.
 ///
@@ -42,25 +43,16 @@ impl Fisher {
     /// # Returns
     ///
     /// * `Ok(Fisher)` - Returns an instance of `Fisher` if the degrees of freedom are positive.
-    /// * `Err(String)` - Returns an error message if the degree of freedom is less than or equal to 0.
-    pub fn new(m: i32, n: i32) -> Result<Fisher, String> {
-        if m <= 0i32 {
-            Err(format!(
-                "First degrees of freedom must be a positive integer. {} is not.",
-                m
-            ))
-        } else if n <= 0i32 {
-            Err(format!(
-                "Second degrees of freedom must be a positive integer. {} is not.",
-                n
-            ))
-        } else {
-            Ok(Fisher {
-                rng: Rng::new(),
-                m,
-                n,
-            })
-        }
+    /// * `Err(RngError)` - Returns a `PositiveError` if any degree of freedom is less than or equal to 0.
+    pub fn new(m: i32, n: i32) -> Result<Fisher, RngError> {
+        RngError::check_positive(m as f64)?;
+        RngError::check_positive(n as f64)?;
+
+        Ok(Fisher {
+            rng: Rng::new(),
+            m,
+            n,
+        })
     }
 
     /// Generates a random value from the Fisher distribution.
@@ -75,14 +67,14 @@ impl Fisher {
     ///
     /// A `f64` value generated from the Fisher distribution.
     pub fn generate(&mut self) -> f64 {
-        let mut sum_m: f64 = 0f64;
-        for _ in 0..self.m {
-            sum_m += self.rng.gen_standard_normal().powi(2i32);
+        let mut sum_m: f64 = 0_f64;
+        for _ in 0_i32..self.m {
+            sum_m += self.rng.gen_standard_normal().powi(2_i32);
         }
 
-        let mut sum_n: f64 = 0f64;
-        for _ in 0..self.n {
-            sum_n += self.rng.gen_standard_normal().powi(2i32);
+        let mut sum_n: f64 = 0_f64;
+        for _ in 0_i32..self.n {
+            sum_n += self.rng.gen_standard_normal().powi(2_i32);
         }
 
         (sum_m / self.m as f64) / (sum_n / self.n as f64)

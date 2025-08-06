@@ -3,6 +3,7 @@
 use crate::auto_rng_trait;
 use crate::auxiliary::simple_ln;
 use crate::rng::{Rng, RngTrait};
+use crate::rng_error::RngError;
 
 /// A struct for generating random variables from an Logistic distribution.
 ///
@@ -42,17 +43,15 @@ impl Logistic {
     /// # Returns
     ///
     /// * `Ok(Logistic)` - Returns an instance of `Logistic` if the `scale` is positive.
-    /// * `Err(String)` - Returns an error message if the `scale` is less than or equal to 0.
-    pub fn new(location: f64, scale: f64) -> Result<Logistic, String> {
-        if scale <= 0f64 {
-            Err(format!("Scale must be a positive number. {} is not.", scale))
-        } else {
-            Ok(Logistic {
-                rng: Rng::new(),
-                location,
-                scale,
-            })
-        }
+    /// * `Err(RngError)` - Returns a `PositiveError` if the `scale` is less than or equal to 0.
+    pub fn new(location: f64, scale: f64) -> Result<Logistic, RngError> {
+        RngError::check_positive(scale)?;
+
+        Ok(Logistic {
+            rng: Rng::new(),
+            location,
+            scale,
+        })
     }
 
     /// Generates a random value from the Logistic distribution.
@@ -72,6 +71,7 @@ impl Logistic {
     /// This uses the `simple_ln` function for speed up.
     pub fn generate(&mut self) -> f64 {
         let uni: f64 = self.rng.generate();
-        self.location + self.scale * (simple_ln(uni) - simple_ln(1f64 - uni))
+
+        self.location + self.scale * (simple_ln(uni) - simple_ln(1_f64 - uni))
     }
 }

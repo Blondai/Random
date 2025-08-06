@@ -2,6 +2,7 @@
 
 use crate::auto_rng_trait;
 use crate::rng::{Rng, RngTrait};
+use crate::rng_error::RngError;
 
 /// A struct for generating random variables from a LogGamma distribution.
 ///
@@ -42,21 +43,16 @@ impl LogGamma {
     /// # Returns
     ///
     /// * `Ok(LogGamma)` - Returns an instance of `LogGamma` if the shape and scale are valid.
-    /// * `Err(String)` - Returns an error message if the shape or scale are less than or equal to 0.
-    pub fn new(shape: i32, scale: f64) -> Result<Self, String> {
-        if shape <= 0i32 {
-            Err(format!("Shape must be a positive number. {} is not.",
-                        shape))
-        } else if scale <= 0f64 {
-            Err(format!("Scale must be a positive number. {} is not.",
-                        scale))
-        } else {
-            Ok(LogGamma {
-                rng: Rng::new(),
-                shape,
-                scale,
-            })
-        }
+    /// * `Err(RngError)` - Returns a `PositiveError` if the shape or scale are less than or equal to 0.
+    pub fn new(shape: i32, scale: f64) -> Result<Self, RngError> {
+        RngError::check_positive(shape as f64)?;
+        RngError::check_positive(scale)?;
+
+        Ok(LogGamma {
+            rng: Rng::new(),
+            shape,
+            scale,
+        })
     }
 
     /// Generates a random value from the LogGamma distribution.
@@ -70,11 +66,12 @@ impl LogGamma {
     ///
     /// A `f64` value generated from the LogGamma distribution.
     pub fn generate(&mut self) -> f64 {
-        let mut prod: f64 = 1f64;
+        let mut prod: f64 = 1_f64;
 
-        for _ in 0usize..(self.shape as usize) {
+        for _ in 0_usize..(self.shape as usize) {
             prod *= self.rng.generate();
         }
-        (prod.ln() * (- self.scale)).exp()
+
+        (prod.ln() * (-self.scale)).exp()
     }
 }

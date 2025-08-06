@@ -2,6 +2,7 @@
 
 use crate::auto_rng_trait;
 use crate::rng::{Rng, RngTrait};
+use crate::rng_error::RngError;
 
 /// A struct for generating random variables from an Exponential distribution.
 ///
@@ -40,17 +41,15 @@ impl Exponential {
     /// # Returns
     ///
     /// * `Ok(Exponential)` - Returns an instance of `Exponential` if the `rate` is valid.
-    /// * `Err(String)` - Returns an error message if the `rate` is less than or equal to 0.
-    pub fn new(rate: f64) -> Result<Exponential, String> {
-        if rate <= 0f64 {
-            Err(format!("Rate must be a positive number. {} is not.", rate))
-        } else {
-            Ok(Exponential {
-                rng: Rng::new(),
-                rate,
-                inverse_rate: 1f64 / rate,
-            })
-        }
+    /// * `Err(RngError)` - Returns a `PositiveError` if the `rate` is less than or equal to 0.
+    pub fn new(rate: f64) -> Result<Exponential, RngError> {
+        RngError::check_positive(rate)?;
+
+        Ok(Exponential {
+            rng: Rng::new(),
+            rate,
+            inverse_rate: 1_f64 / rate,
+        })
     }
 
     /// Generates a random value from the Exponential distribution.
@@ -65,6 +64,6 @@ impl Exponential {
     ///
     /// A `f64` value generated from the Exponential distribution.
     pub fn generate(&mut self) -> f64 {
-        - f64::ln(self.rng.generate()) * self.inverse_rate
+        -f64::ln(self.rng.generate()) * self.inverse_rate
     }
 }

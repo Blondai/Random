@@ -2,6 +2,7 @@
 
 use crate::auto_rng_trait;
 use crate::rng::{Rng, RngTrait};
+use crate::rng_error::RngError;
 
 /// A struct for generating random variables from a uniform distribution between a and b.
 ///
@@ -32,25 +33,15 @@ impl Uniform {
     /// # Returns
     ///
     /// * `Ok(Uniform)` - Returns an instance of `Uniform` if the bounds are valid.
-    /// * `Err(String)` - Returns an error message if the bounds are equal or wrongly ordered.
-    pub fn new(a: f64, b: f64) -> Result<Uniform, String> {
-        if b < a {
-            Err(format!(
-                "The upper bound must be bigger than the lower bound. {} is not bigger than {}.",
-                b, a
-            ))
-        } else if a == b {
-            Err(format!(
-                "The bounds must be different. {} and {} are not.",
-                b, a
-            ))
-        } else {
-            Ok(Uniform {
-                rng: Rng::new(),
-                a,
-                b,
-            })
-        }
+    /// * `Err(RngError)` - Returns a `OderError` if the bounds are equal or wrongly ordered.
+    pub fn new(a: f64, b: f64) -> Result<Uniform, RngError> {
+        RngError::check_order(a, b)?;
+
+        Ok(Uniform {
+            rng: Rng::new(),
+            a,
+            b,
+        })
     }
 
     /// Generates a random value from the Uniform distribution.
@@ -63,6 +54,8 @@ impl Uniform {
     ///
     /// A `f64` value generated from the uniform distribution.
     pub fn generate(&mut self) -> f64 {
-        self.a + (self.b - self.a) * self.rng.generate()
+        let uni: f64 = self.rng.generate();
+
+        self.a + (self.b - self.a) * uni
     }
 }

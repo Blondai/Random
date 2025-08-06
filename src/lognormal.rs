@@ -2,6 +2,7 @@
 
 use crate::auto_rng_trait;
 use crate::rng::{Rng, RngTrait};
+use crate::rng_error::RngError;
 
 /// A struct for generating random variables from a LogNormal distribution.
 ///
@@ -45,21 +46,16 @@ impl LogNormal {
     /// # Returns
     ///
     /// * `Ok(LogNormal)` - Returns an instance of `LogNormal` if the variance is valid.
-    /// * `Err(String)` - Returns an error message if the variance is less than or equal to 0.
-    pub fn new(mean: f64, variance: f64) -> Result<LogNormal, String> {
-        if variance <= 0f64 {
-            Err(format!(
-                "Variance must be a positive number. {} is not.",
-                mean
-            ))
-        } else {
-            Ok(LogNormal {
-                rng: Rng::new(),
-                mean,
-                variance,
-                std: variance.sqrt(),
-            })
-        }
+    /// * `Err(RngError)` - Returns a `PositiveError` if the variance is less than or equal to 0.
+    pub fn new(mean: f64, variance: f64) -> Result<LogNormal, RngError> {
+        RngError::check_positive(variance)?;
+
+        Ok(LogNormal {
+            rng: Rng::new(),
+            mean,
+            variance,
+            std: variance.sqrt(),
+        })
     }
 
     /// Generates a random value from the LogNormal distribution.
@@ -74,6 +70,8 @@ impl LogNormal {
     ///
     /// A `f64` value generated from the LogNormal distribution.
     pub fn generate(&mut self) -> f64 {
-        (self.std * self.rng.gen_standard_normal() + self.mean).exp()
+        let normal: f64 = self.rng.gen_standard_normal();
+
+        (self.std * normal + self.mean).exp()
     }
 }

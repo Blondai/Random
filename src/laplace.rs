@@ -3,6 +3,7 @@
 use crate::auto_rng_trait;
 use crate::auxiliary::simple_ln;
 use crate::rng::{Rng, RngTrait};
+use crate::rng_error::RngError;
 
 /// A struct for generating random variables from an Laplace distribution.
 ///
@@ -42,17 +43,15 @@ impl Laplace {
     /// # Returns
     ///
     /// * `Ok(Laplace)` - Returns an instance of `Laplace` if the `scale` is positive.
-    /// * `Err(String)` - Returns an error message if the `scale` is less than or equal to 0.
-    pub fn new(location: f64, scale: f64) -> Result<Laplace, String> {
-        if scale <= 0f64 {
-            Err(format!("Scale must be a positive number. {} is not.", scale))
-        } else {
-            Ok(Laplace {
-                rng: Rng::new(),
-                location,
-                scale,
-            })
-        }
+    /// * `Err(RngError)` - Returns a `PositiveError` if the `scale` is less than or equal to 0.
+    pub fn new(location: f64, scale: f64) -> Result<Laplace, RngError> {
+        RngError::check_positive(scale)?;
+
+        Ok(Laplace {
+            rng: Rng::new(),
+            location,
+            scale,
+        })
     }
 
     /// Generates a random value from the Laplace distribution.
@@ -71,7 +70,8 @@ impl Laplace {
     ///
     /// This uses the `simple_ln` function for speed up.
     pub fn generate(&mut self) -> f64 {
-        let uni: f64 = self.rng.generate() - 0.5f64;
-        self.location - self.scale * f64::signum(uni) * simple_ln(1f64 - 2f64 * f64::abs(uni))
+        let uni: f64 = self.rng.generate() - 0.5_f64;
+
+        self.location - self.scale * f64::signum(uni) * simple_ln(1_f64 - 2_f64 * f64::abs(uni))
     }
 }

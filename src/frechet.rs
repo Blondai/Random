@@ -3,6 +3,7 @@
 use crate::auto_rng_trait;
 use crate::auxiliary::simple_ln;
 use crate::rng::{Rng, RngTrait};
+use crate::rng_error::RngError;
 
 /// A struct for generating random variables from a Frechet distribution.
 ///
@@ -48,20 +49,17 @@ impl Frechet {
     /// # Returns
     ///
     /// * `Ok(Frechet)` - Returns an instance of `Frechet` if the `shape` and scale are positive.
-    /// * `Err(String)` - Returns an error message if the `shape` or `scale` are less than or equal to 0.
-    pub fn new(location: f64, shape: f64, scale: f64) -> Result<Frechet, String> {
-        if shape <= 0f64 {
-            Err(format!("Shape must be a positive number. {} is not.", shape))
-        } else if scale <= 0f64 {
-            Err(format!("Scale must be a positive number. {} is not.", scale))
-        } else {
-            Ok(Frechet {
-                rng: Rng::new(),
-                location,
-                shape,
-                scale,
-            })
-        }
+    /// * `Err(RngError)` - Returns a `PositiveError` if the `shape` or `scale` are less than or equal to 0.
+    pub fn new(location: f64, shape: f64, scale: f64) -> Result<Frechet, RngError> {
+        RngError::check_positive(shape)?;
+        RngError::check_positive(location)?;
+
+        Ok(Frechet {
+            rng: Rng::new(),
+            location,
+            shape,
+            scale,
+        })
     }
 
     /// Generates a random value from the Frechet distribution.
@@ -80,6 +78,6 @@ impl Frechet {
     ///
     /// This uses the `simple_ln` function for speed up.
     pub fn generate(&mut self) -> f64 {
-        self.location + self.scale * (- simple_ln(self.rng.generate())).powf(-1f64 / self.shape)
+        self.location + self.scale * (-simple_ln(self.rng.generate())).powf(-1_f64 / self.shape)
     }
 }

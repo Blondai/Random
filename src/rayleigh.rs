@@ -3,6 +3,7 @@
 use crate::auto_rng_trait;
 use crate::auxiliary::simple_ln;
 use crate::rng::{Rng, RngTrait};
+use crate::rng_error::RngError;
 
 /// A struct for generating random variables from a Rayleigh distribution.
 ///
@@ -36,17 +37,14 @@ impl Rayleigh {
     /// # Returns
     ///
     /// * `Ok(Rayleigh)` - Returns an instance of `Rayleigh` if the `scale` are positive.
-    /// * `Err(String)` - Returns an error message if the `scale` is less than or equal to 0.
-    pub fn new(scale: f64) -> Result<Rayleigh, String> {
-        if scale <= 0f64 {
-            Err(format!("Scale must be a positive number. {} is not.", scale))
-        } else {
-            Ok(Rayleigh {
-                rng: Rng::new(),
-                scale,
-            })
-        }
+    /// * `Err(RngError)` - Returns a `PositiveError` if the `scale` is less than or equal to 0.
+    pub fn new(scale: f64) -> Result<Rayleigh, RngError> {
+        RngError::check_positive(scale)?;
 
+        Ok(Rayleigh {
+            rng: Rng::new(),
+            scale,
+        })
     }
 
     /// Generates a random value from the Rayleigh distribution.
@@ -65,6 +63,8 @@ impl Rayleigh {
     ///
     /// This uses the `simple_ln` function for speed up.
     pub fn generate(&mut self) -> f64 {
-        self.scale * (- 2f64 * simple_ln(self.rng.generate())).sqrt()
+        let uni: f64 = self.rng.generate();
+
+        self.scale * (-2_f64 * simple_ln(uni)).sqrt()
     }
 }

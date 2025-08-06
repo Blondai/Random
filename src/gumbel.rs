@@ -3,6 +3,7 @@
 use crate::auto_rng_trait;
 use crate::auxiliary::simple_ln;
 use crate::rng::{Rng, RngTrait};
+use crate::rng_error::RngError;
 
 /// A struct for generating random variables from an Gumbel distribution.
 ///
@@ -42,17 +43,15 @@ impl Gumbel {
     /// # Returns
     ///
     /// * `Ok(Gumbel)` - Returns an instance of `Gumbel` if the `scale` is positive.
-    /// * `Err(String)` - Returns an error message if the `scale` is less than or equal to 0.
-    pub fn new(location: f64, scale: f64) -> Result<Gumbel, String> {
-        if scale <= 0f64 {
-            Err(format!("Scale must be a positive number. {} is not.", scale))
-        } else {
-            Ok(Gumbel {
-                rng: Rng::new(),
-                location,
-                scale,
-            })
-        }
+    /// * `Err(RngError)` - Returns a `PositiveError` if the `scale` is less than or equal to 0.
+    pub fn new(location: f64, scale: f64) -> Result<Gumbel, RngError> {
+        RngError::check_positive(scale)?;
+
+        Ok(Gumbel {
+            rng: Rng::new(),
+            location,
+            scale,
+        })
     }
 
     /// Generates a random value from the Gumbel distribution.
@@ -71,6 +70,6 @@ impl Gumbel {
     ///
     /// This uses the `simple_ln` function for speed up.
     pub fn generate(&mut self) -> f64 {
-        self.location - self.scale * f64::ln(- simple_ln(self.rng.generate()))
+        self.location - self.scale * f64::ln(-simple_ln(self.rng.generate()))
     }
 }
