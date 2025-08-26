@@ -11,6 +11,11 @@ pub enum RngError {
     /// `high` is the value received as upper bound.
     OrderError { low: f64, high: f64 },
 
+    /// The parameter should be non-negative.
+    ///
+    /// `value` is the value that should have been non-negative.
+    NonNegativeError { value: f64 },
+
     /// The parameter should be a positive.
     ///
     /// `value` is the value that should have been positive.
@@ -18,6 +23,9 @@ pub enum RngError {
 
     /// The given parameter should have been within a given interval.
     IntervalError { value: f64, min: f64, max: f64 },
+
+    /// The given vector is empty.
+    EmptyError,
 }
 
 impl Display for RngError {
@@ -28,6 +36,11 @@ impl Display for RngError {
                 "Order Error: expected low <= high, got low = {} and high = {}",
                 low, high
             ),
+            RngError::NonNegativeError { value } => write!(
+                format,
+                "NonNegative Error: expected value >= 0, got {}",
+                value
+            ),
             RngError::PositiveError { value } => {
                 write!(format, "Positive Error: expected value > 0, got {}", value)
             }
@@ -36,6 +49,10 @@ impl Display for RngError {
                 "Interval Error: expected {} <= value <= {}, got {}",
                 min, max, value
             ),
+            RngError::EmptyError => write!(
+                format,
+                "Empty Error: the vector is empty",
+            )
         }
     }
 }
@@ -47,6 +64,12 @@ impl RngError {
     #[inline]
     pub fn order(low: f64, high: f64) -> Self {
         RngError::OrderError { low, high }
+    }
+
+    /// Creates a new `NonNegativeError`.
+    #[inline]
+    pub fn non_negative(value: f64) -> Self {
+        RngError::NonNegativeError { value }
     }
 
     /// Creates a new `PositiveError`.
@@ -78,6 +101,25 @@ impl RngError {
             Ok(())
         } else {
             Err(Self::order(low, high))
+        }
+    }
+
+    /// Checks whether a value is non-negative.
+    ///
+    /// # Arguments
+    ///
+    /// * `value` - The value that should be non-negative.
+    ///
+    /// # Returns
+    ///
+    /// * `()` - When `value` >= 0.
+    /// * `NonNegativeError` - Otherwise.
+    #[inline]
+    pub fn check_non_negative(value: f64) -> Result<(), Self> {
+        if value >= 0_f64 {
+            Ok(())
+        } else {
+            Err(Self::non_negative(value))
         }
     }
 
@@ -122,6 +164,25 @@ impl RngError {
             Ok(())
         } else {
             Err(Self::interval(value, min, max))
+        }
+    }
+
+    /// Checks whether a vector is empty.
+    ///
+    /// # Arguments
+    ///
+    /// * `vec` - A reference to the vector.
+    ///
+    /// # Returns
+    ///
+    /// * `()` - When the vector is not empty.
+    /// * `OrderError` - Otherwise.
+    #[inline]
+    pub fn check_empty<T>(vec: &Vec<T>) -> Result<(), Self> {
+        if !(vec.is_empty()) {
+            Ok(())
+        } else {
+            Err(Self::EmptyError)
         }
     }
 }

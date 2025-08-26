@@ -45,5 +45,7 @@ For examples a `Normal` distribution requires a `mean` and a `variance`.
 
 - [x] Invert `Ok` and `Err` case to improve branch prediction.
 - [x] Implement `Error` struct to return `Result<Distr, Error>` instead of `Result<Distr, String>`.
+- [ ] Add docstring to the distribution structs.
+- [ ] Add distribution for pulls from a set without back putting.
 - [ ] Add getter methods.
 - [ ] Add unit tests. I have no clue how to test something that should be random...

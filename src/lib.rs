@@ -40,6 +40,7 @@ mod students_t;
 mod triangle;
 mod uniform;
 mod weibull;
+mod randel;
 
 pub use crate::bernoulli::Bernoulli;
 pub use crate::beta::Beta;
